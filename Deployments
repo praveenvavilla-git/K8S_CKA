@@ -1,0 +1,56 @@
+1. To check the number of deployments in the default namespace
+master $ kubectl get deployments
+No resources found in default namespace.
+master $
+
+2. A deployment internally creates a replicaset and pods
+
+3. We can check the details of the deployment using below command
+kubectl describe deployment deployment-name
+
+4. Create depployment using yaml file
+
+deployment-definition-1.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      name: busybox-pod
+  template:
+    metadata:
+      labels:
+        name: busybox-pod
+    spec:
+      containers:
+      - name: busybox-container
+        image: busybox888
+        command:
+        - sh
+        - "-c"
+        - echo Hello Kubernetes! && sleep 3600
+  
+ kubectl create -f deployment-definition-1.yaml
+
+5. Create a new Deployment with the below attributes using your own deployment definition file
+Name: httpd-frontend; Replicas: 3; Image: httpd:2.4-alpine
+
+Create yaml file as below:
+kubectl create deployment httpd-frontend --image=httpd:2.4-alpine $gen > httpd.yaml
+
+Then update yaml file with 3 repliasets.
+Then create deployment using yaml file.
+
+master $ kubectl create -f httpd.yaml --record
+deployment.apps/httpd-frontend created
+master $ kubectl rollout history deployment  httpd-frontend
+deployment.apps/httpd-frontend
+REVISION  CHANGE-CAUSE
+1         kubectl create --filename=httpd.yaml --record=true
+
+6.
+

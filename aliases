@@ -1,0 +1,20 @@
+Kubectl Autocomplete (from K8S cheatsheet)
+BASH
+source <(kubectl completion bash) # setup autocomplete in bash into the current shell, bash-completion package should be installed first.
+echo "source <(kubectl completion bash)" >> ~/.bashrc # add autocomplete permanently to your bash shell.
+
+alias k=kubectl
+complete -F __start_kubectl k
+
+alias k=kubectl
+alias kgp='kubectl get pods -o wide'
+alias kgs='kubectl get svc -o wide'
+alias kgd='kubectl get deploy -o wide'
+
+alias kdp='kubectl describe pod'
+alias kdd='kubectl describe deploy'
+alias kds='kubectl describe svc'
+export gen="--dry-run=client -o yaml"
+
+alias kdn='kubectl describe node'
+alias kgn='kubectl get nodes -o wide'

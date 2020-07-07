@@ -1,4 +1,4 @@
-Create a static pod in the worker node(node01):
+Steps to create a static pod in the worker node(node01):
 
 1. Create yaml file in master node.
 master $ kubectl run nginx-critical --image=nginx --dry-run=client -o yaml > nginx_static.yaml
@@ -104,3 +104,15 @@ nginx-resolver                 1/1     Running   0          13m
 redis-storage                  1/1     Running   0          32m
 super-user-pod                 1/1     Running   0          26m
 use-pv                         1/1     Running   0          19m
+
+--------------------------------------------------------------------------------------------
+
+2. Check staticPodPath directory
+
+master $ ps -aux | grep kubelet
+
+check for --config=/var/lib/kubelet/config.yaml
+check for the parameter staticPodPath
+
+3. Create a static pod named static-busybox that uses the busybox image and the command sleep 1000
+kubectl run --restart=Never --image=busybox static-busybox --dry-run -o yaml --command -- sleep 1000 > /etc/kubernetes/manifests/static-busybox.yaml

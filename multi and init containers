@@ -1,0 +1,134 @@
+
+Multi Container Pods:
+======================
+
+1. Create a multi-container pod with 2 containers.
+Use the spec given on the right.
+
+Name: yellow
+Container 1 Name: lemon
+Container 1 Image: busybox
+Container 2 Name: gold
+Container 2 Image: redis
+
+master $ cat multi.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: yellow
+  name: yellow
+spec:
+  containers:
+  - image: busybox
+    name: lemon
+  - image: redis
+    name: gold
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+master $
+
+
+2. The 'app'lication outputs logs to the file /log/app.log. View the logs and try to identify the user having issues with Login.
+Inspect the log file inside the pod
+
+kubectl exec app -n  elastic-stack -it -- cat /log/app.log
+
+3. Edit the pod to add a sidecar container to send logs to ElasticSearch. Mount the log volume to the sidecar container..
+Only add a new container. Do not modify anything else. Use the spec on the right.
+Name: app
+Container Name: sidecar
+Container Image: kodekloud/filebeat-configured
+Volume Mount: log-volume
+Mount Path: /var/log/event-simulator/
+Existing Container Name: app
+Existing Container Image: kodekloud/event-simulator
+
+master $ cat /var/answers/answer-app.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app
+  namespace: elastic-stack
+  labels:
+    name: app
+spec:
+  containers:
+  - name: app
+    image: kodekloud/event-simulator
+    volumeMounts:
+    - mountPath: /log
+      name: log-volume
+
+  - name: sidecar
+    image: kodekloud/filebeat-configured
+    volumeMounts:
+    - mountPath: /var/log/event-simulator/
+      name: log-volume
+
+  volumes:
+  - name: log-volume
+    hostPath:
+      # directory location on host
+      path: /var/log/webapp
+      # this field is optional
+      type: DirectoryOrCreatemaster $
+master $
+
+
+Init containers:
+=======================
+1. Update the pod red to use an initContainer that uses the busybox image and sleeps for 20 seconds
+Pod: red
+initContainer Configured Correctly
+
+spec:
+  initContainers:
+  - image: busybox
+    name: bb
+    command: [ 'sh', '-c', 'sleep 20']
+  containers:
+  - command:
+    - sh
+    - -c
+    - echo The app is running! && sleep 3600
+    image: busybox:1.28
+    name: red-container
+    
+    we can echo some text with below
+    command: ['sh', '-c', 'echo praveen how are you!!!! && sleep 20']
+    
+2. Init container creates a directory and a file. Main container checks for the existance of file and if file exists sleep and if not there it should exit
+
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: initc
+  name: initc
+spec:
+  initContainers:
+  - image: busybox:1.28
+    name: bb
+    command: ['sh','-c','mkdir /workdata/test; echo sometestpraveen > /workdata/test/abcd']
+    volumeMounts:
+    - mountPath: /workdata
+      name: foo
+  containers:
+  - image: nginx
+    name: nginxc
+    volumeMounts:
+    - mountPath: /workdata
+      name: foo
+    command: ['sh','-c','if [ -f /workdata/test/abcd ]; then sleep 2000; else exit; fi']
+    resources: {}
+  volumes:
+  - name: foo
+    emptyDir: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}

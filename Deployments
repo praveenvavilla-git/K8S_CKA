@@ -53,4 +53,23 @@ REVISION  CHANGE-CAUSE
 1         kubectl create --filename=httpd.yaml --record=true
 
 6.
+================================================================================================================================================
+
+Rolling updates:
+
+1. Let us try that. Upgrade the application by setting the image on the deployment to 'kodekloud/webapp-color:v2'
+Do not delete and re-create the deployment. Only set the new image name for the existing deployment.
+
+Deployment Name: frontend
+Deployment Image: kodekloud/webapp-color:v2
+
+master $ kubectl set image deployments.apps frontend simple-webapp=kodekloud/webapp-color:v2 --record
+Default strategy is Rollingupdate.
+
+2. Change the deployment strategy to 'Recreate'
+Do not delete and re-create the deployment. Only update the strategy type for the existing deployment.
+
+Edit the deployment.
+check the deployment events using kubectl describe deploy front
+4 pods terminated at the same time and new 4 pods created at the same time.
 

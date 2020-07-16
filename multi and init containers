@@ -78,6 +78,161 @@ spec:
       type: DirectoryOrCreatemaster $
 master $
 
+4. Create a Pod with three busy box containers with commands “ls; sleep 3600;”, “echo Hello World; sleep 3600;” and “echo this is the third container; sleep 3600” 
+respectively and check the status
+
+master $ cat multi-bb.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: multi-bb
+  name: multi-bb
+spec:
+  containers:
+  - image: busybox
+    name: bb1
+    command: ["sh", "-c", "ls; sleep 3600"]
+  - image: busybox
+    name: bb2
+    command: ["sh", "-c", "echo Hello world; sleep 3600"]
+  - image: buxybox
+    name: bb3
+    command: ["sh", "-c", "echo this is the third container; sleep 3600"]
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+master $
+
+master $ kubectl logs multi-bb -c bb1
+bin
+dev
+etc
+home
+proc
+root
+sys
+tmp
+usr
+var
+master $ kubectl logs multi-bb -c bb2
+Hello world
+master $ kubectl logs multi-bb -c bb3
+this is the third container
+master $
+
+
+5. Create a Pod with main container busybox and which executes this “while true; do echo ‘Hi I am from Main container’ >> /var/log/index.html; sleep 5; done” and with 
+sidecar container with nginx image which exposes on port 80. Use emptyDir Volume and mount this volume on path /var/log for busybox and on path /usr/share/nginx/html for 
+nginx container. Verify both containers are running.
+
+master $ cat mcp.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: mcp
+  name: mcp
+spec:
+  volumes:
+  - name: foo
+    emptyDir: {}
+  containers:
+  - image: busybox
+    name: mainc
+    command: ["sh", "-c", "while true; do echo Hi I am from main container>> /var/log/index.html; sleep 5; done"]
+    volumeMounts:
+    - name: foo
+      mountPath: /var/log
+  - image: nginx
+    name: sidec
+    ports:
+    - containerPort: 80
+    volumeMounts:
+    - name: foo
+      mountPath: /usr/share/nginx/html
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+
+master $ kubectl exec mcp -c mainc -- cat /var/log/index.html
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+master $
+
+master $ kubectl exec mcp -c sidec -- ls /usr/share/nginx/html
+index.html
+master $ kubectl exec mcp -c sidec -- cat /usr/share/nginx/html
+cat: /usr/share/nginx/html: Is a directory
+command terminated with exit code 1
+master $
+master $ kubectl exec mcp -c sidec -- cat /usr/share/nginx/html/index.html
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+Hi I am from main container
+master $
+
 
 Init containers:
 =======================
@@ -124,7 +279,7 @@ spec:
     volumeMounts:
     - mountPath: /workdata
       name: foo
-    command: ['sh','-c','if [ -f /workdata/test/abcd ]; then sleep 2000; else exit; fi']
+    command: ['sh','-c','if [ -f /workdata/test/abcd ]; then sleep 2000; else exit; fi']   # note if syntax  if [ -f path ]; then sleep 2000; else exit; fi
     resources: {}
   volumes:
   - name: foo

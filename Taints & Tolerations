@@ -64,3 +64,8 @@ master $ kubectl describe node master | grep -i taint
 Taints:             <none>
 master $
 
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+Manual scheduling of pods to nodes can be done by using nodeName in spec section of yaml definition file.  If there is no schuler present or even if the 
+schduler present nodeName option superseds other regular scheduling.
+
+
